@@ -1,18 +1,11 @@
-using AuthorizationServer;
 using AuthorizationServer.Data;
+using AuthorizationServer.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-    {
-        options.LoginPath = "/account/login";
-    });
-
 
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -21,39 +14,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseOpenIddict();
 });
 
-builder.Services.AddOpenIddict()
-    .AddCore(options =>
-    {
-        options.UseEntityFrameworkCore()
-            .UseDbContext<ApplicationDbContext>();
-    })
-    .AddServer(options =>
-    {
-        options
-            .AllowAuthorizationCodeFlow()
-                .RequireProofKeyForCodeExchange()
-            .AllowClientCredentialsFlow()
-            .AllowRefreshTokenFlow();
-        options
-            .SetAuthorizationEndpointUris("/connect/authorize")
-            .SetTokenEndpointUris("/connect/token")
-            .SetUserinfoEndpointUris("/connect/userinfo");
-
-        options.AddEphemeralEncryptionKey()
-            .AddEphemeralSigningKey()
-            .DisableAccessTokenEncryption();
-
-
-        options.RegisterScopes("api");
-
-        options
-            .UseAspNetCore()
-            .EnableTokenEndpointPassthrough()
-            .EnableAuthorizationEndpointPassthrough()
-            .EnableUserinfoEndpointPassthrough();
-    });
-
-builder.Services.AddHostedService<TestData>();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        .AddCookie(options =>
+        {
+            options.ExpireTimeSpan = TimeSpan.FromHours(10);
+            options.LoginPath = "/Account/Login";
+            options.AccessDeniedPath = "/Account/AccessDenied";
+        });
+builder.Services.ConfigureIdentity();
+builder.Services.ConfigureOpenIddict();
+builder.Services.AddServices(builder.Configuration);
 
 var app = builder.Build();
 
@@ -62,14 +32,11 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthentication();
-
 app.UseAuthorization();
-
 app.UseEndpoints(endpoints =>
 {
     _ = endpoints.MapDefaultControllerRoute();

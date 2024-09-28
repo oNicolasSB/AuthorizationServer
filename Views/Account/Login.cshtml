@@ -1,12 +1,92 @@
-@model AuthorizationServer.ViewModels.LoginViewModel
-<form autocomplete="off" asp-route="Login">
-    <input type="hidden" asp-for="ReturnUrl" />
-    <div class="card">
-        <input type="text" class="form-control form-control-lg" placeholder="Username" asp-for="Username" autofocus>
-        <input type="password" class="form-control form-control-lg form-control-last" placeholder="Password"
-            asp-for="Password">
+@using AuthorizationServer.ViewModels.Account
+@model LoginViewModel
+
+@{
+    string returnUrl = "";
+    if (Context.Request.Query.ContainsKey("returnUrl"))
+    {
+        returnUrl = Context.Request.Query["returnUrl"].ToString();
+    }
+}
+
+@if (!string.IsNullOrWhiteSpace(@ViewBag.ErrorMessage))
+{
+    <section class="warning">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <section class="warnings pt-4">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="alert alert-danger w-100">
+                                        @ViewBag.ErrorMessage
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+@if (!string.IsNullOrWhiteSpace(@ViewBag.SuccessMessage))
+{
+    <section class="warning">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <section class="warnings pt-4">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="alert alert-success w-100">
+                                        @ViewBag.SuccessMessage
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<section class="login py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-md-8 offset-md-2 col-lg-6 offset-lg-3">
+                <form asp-action="Login" class="px-2 py-5 px-sm-5 bg-light rounded-3">
+                    <input type="hidden" name="ReturnUrl" id="ReturnUrl" value="@returnUrl">
+                    <h2 class="text-dark text-center mb-3">Login</h2>
+                    <div class="col-12 mb-3 email">
+                        <p class="mb-0">
+                            <label class="form-label" asp-for="@Model.Email">Email: </label>
+                        </p>
+                        <input class="form-control" type="text" asp-for=@Model.Email>
+                        <span class="text-danger form-text" asp-validation-for="@Model.Email"></span>
+                    </div>
+                    <div class="col-12 mb-3 password">
+                        <p class="mb-0">
+                            <label class="form-label" asp-for="@Model.Password"><span>Password: </span></label>
+                        </p>
+                        <input class="form-control" type="password" asp-for=@Model.Password>
+                        <span class="text-danger form-text" asp-validation-for="@Model.Password"></span>
+                    </div>
+                    <div class="col-12 remember">
+                        <input type="checkbox" asp-for="@Model.RememberMe">
+                        <label class="form-label" asp-for="@Model.RememberMe"><span id="remember">Remember
+                                me.</span></label>
+                    </div>
+                    <div
+                        class="col-12 text-center mt-5 d-flex flex-column justify-content-center align-items-center gap-4">
+                        <button type="submit" class="btn btn-primary px-5" title="Login">Login</button>
+                        <p>Don't have an account? <a asp-action="Register" asp-controller="Account">Sign up</a>. </p>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <p>
-        <button type="submit" class="btn btn-dark btn-block mt-3">Login</button>
-    </p>
-</form>
+</section>
