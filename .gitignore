@@ -3,3 +3,4 @@ obj/
 .vs/
 bin/
 appsettings.Development.json
+Certificates/*

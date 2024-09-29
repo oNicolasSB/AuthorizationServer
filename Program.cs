@@ -22,7 +22,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             options.AccessDeniedPath = "/Account/AccessDenied";
         });
 builder.Services.ConfigureIdentity();
-builder.Services.ConfigureOpenIddict();
+builder.Services.ConfigureOpenIddict(builder.Configuration, builder.Environment);
 builder.Services.AddServices(builder.Configuration);
 
 var app = builder.Build();

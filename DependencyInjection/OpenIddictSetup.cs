@@ -1,10 +1,11 @@
 using AuthorizationServer.Data;
+using System.Security.Cryptography.X509Certificates;
 
 namespace AuthorizationServer.DependencyInjection;
 
 public static class OpenIddictSetup
 {
-    public static IServiceCollection ConfigureOpenIddict(this IServiceCollection services)
+    public static IServiceCollection ConfigureOpenIddict(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
     {
         services.AddOpenIddict()
             .AddCore(options =>
@@ -19,15 +20,26 @@ public static class OpenIddictSetup
                         .RequireProofKeyForCodeExchange()
                     .AllowClientCredentialsFlow()
                     .AllowRefreshTokenFlow();
+
                 options
                     .SetAuthorizationEndpointUris("/connect/authorize")
                     .SetTokenEndpointUris("/connect/token")
                     .SetUserinfoEndpointUris("/connect/userinfo");
 
-                options.AddEphemeralEncryptionKey()
-                    .AddEphemeralSigningKey()
-                    .DisableAccessTokenEncryption();
 
+                string signInCertificate = configuration["Certificates:SigningCertificate"] ?? string.Empty;
+                string signInCertificatePassword = configuration["Certificates:SigningCertificatePassword"] ?? string.Empty;
+
+                string encryptionCertificate = configuration["Certificates:EncryptionCertificate"] ?? string.Empty;
+                string encryptionCertificatePassword = configuration["Certificates:EncryptionCertificatePassword"] ?? string.Empty;
+
+                options.AddSigningCertificate(new X509Certificate2(signInCertificate, signInCertificatePassword));
+                options.AddEncryptionCertificate(new X509Certificate2(encryptionCertificate, encryptionCertificatePassword));
+
+                if (env.IsDevelopment())
+                {
+                    options.DisableAccessTokenEncryption();
+                }
 
                 options.RegisterScopes("api");
 
@@ -41,5 +53,4 @@ public static class OpenIddictSetup
         services.AddHostedService<TestData>();
         return services;
     }
-
 }
